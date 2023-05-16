@@ -29,67 +29,84 @@ def gvi(name):
     return gbi
 
 
-def gen_vars(pigeons, holes):
+# def gen_vars(pigeons, holes):
 
+#     varMap = {}
+
+#     for hole in range(0, holes):
+#         for pigeon in range(0, pigeons):
+#             n = "inHole_"+str(pigeon)+"_"+str(hole)
+#             varMap[n] = gvi(n)
+
+#     # Insert here the code to add mapping from variable numbers to readable variable names.
+#     # A single variable with a human readable name "var_name" is added, for instance, as follows:
+#     # varMap["var_name"] = gvi("var_name")
+#     # let's add another one.
+#     # varMap["var2_name"] = gvi("var2_name")
+
+#     return varMap
+
+
+def gen_vars(nodes, edges):
+    # TODO
     varMap = {}
 
-    for hole in range(0, holes):
-        for pigeon in range(0, pigeons):
-            n = "inHole_"+str(pigeon)+"_"+str(hole)
-            varMap[n] = gvi(n)
-
-    # Insert here the code to add mapping from variable numbers to readable variable names.
-    # A single variable with a human readable name "var_name" is added, for instance, as follows:
-    # varMap["var_name"] = gvi("var_name")
-    # let's add another one.
-    # varMap["var2_name"] = gvi("var2_name")
+    for edge in edges:
+        n = "edge_" + edge[0] + "_" + edge[1] # TODO: Not relevant
+        varMap[n] = gvi(n)
 
     return varMap
 
 
-def genPigConstr(pigeons, holes, vars):
+def genConstr(nodes, edges, k, vars):
+    import math
 
+    # TODO
     clauses = []
-
-    # Insert here the code to generate the clauses.  A single clause var_name | var2_name is added as follows
-    # clauses.append( [   vars["var_name"],  vars["var2_name"]   ])
-
-    # Cond 1: A pigeon cannot be inside two holes
-    for pigeon in range(0, pigeons):
-        for hole in range(0, holes):
-            for other_hole in range(hole + 1, holes):
-                var1 = -vars["inHole_"+str(pigeon)+"_"+str(hole)]
-                var2 = -vars["inHole_"+str(pigeon)+"_"+str(other_hole)]
-                clauses.append([var1, var2])
-
-    # Cond 2: Each hole can contain only one pigeon
-    for hole in range(0, holes):
-        for pigeon in range(0, pigeons):
-            for other_pigeon in range(pigeon + 1, pigeons):
-                var1 = -vars["inHole_"+str(pigeon)+"_"+str(hole)]
-                var2 = -vars["inHole_"+str(other_pigeon)+"_"+str(hole)]
-                clauses.append([var1, var2])
-
-    # Cond 3: Each pigeon must stay inside some hole
-    # idea from a, b, c, at least one of them must be true
-    for pigeon in range(0, pigeons):
-        list = []
-        for hole in range(0, holes):
-            list.append(vars["inHole_"+str(pigeon)+"_"+str(hole)])
-        clauses.append(list)
-
     return clauses
 
+
+# def genPigConstr(pigeons, holes, vars):
+
+#     clauses = []
+
+#     # Insert here the code to generate the clauses.  A single clause var_name | var2_name is added as follows
+#     # clauses.append( [   vars["var_name"],  vars["var2_name"]   ])
+
+#     # Cond 1: A pigeon cannot be inside two holes
+#     for pigeon in range(0, pigeons):
+#         for hole in range(0, holes):
+#             for other_hole in range(hole + 1, holes):
+#                 var1 = -vars["inHole_"+str(pigeon)+"_"+str(hole)]
+#                 var2 = -vars["inHole_"+str(pigeon)+"_"+str(other_hole)]
+#                 clauses.append([var1, var2])
+
+#     # Cond 2: Each hole can contain only one pigeon
+#     for hole in range(0, holes):
+#         for pigeon in range(0, pigeons):
+#             for other_pigeon in range(pigeon + 1, pigeons):
+#                 var1 = -vars["inHole_"+str(pigeon)+"_"+str(hole)]
+#                 var2 = -vars["inHole_"+str(other_pigeon)+"_"+str(hole)]
+#                 clauses.append([var1, var2])
+
+#     # Cond 3: Each pigeon must stay inside some hole
+#     # idea from a, b, c, at least one of them must be true
+#     for pigeon in range(0, pigeons):
+#         list = []
+#         for hole in range(0, holes):
+#             list.append(vars["inHole_"+str(pigeon)+"_"+str(hole)])
+#         clauses.append(list)
+
+#     return clauses
+
+
 # A helper function to print the cnf header
-
-
 def printHeader(n):
     global gbi
     return "p cnf {} {}".format(gbi, n)
 
+
 # A helper function to print a set of clauses cls
-
-
 def printCnf(cls):
     return "\n".join(map(lambda x: "%s 0" % " ".join(map(str, x)), cls))
 
@@ -103,15 +120,30 @@ if __name__ == '__main__':
 
     # This is for reading in the arguments.
     if len(sys.argv) != 3:
-        print("Usage: %s <pigeons> <holes>" % sys.argv[0])
+        print("Usage: %s <filename> <k>" % sys.argv[0])
         sys.exit(1)
 
-    pigeons = int(sys.argv[1])
-    holes = int(sys.argv[2])
+    filename = sys.argv[1]
+    k = int(sys.argv[2])
 
-    vars = gen_vars(pigeons, holes)
+    nodes = []
+    edges = []
 
-    rules = genPigConstr(pigeons, holes, vars)
+    f = open(filename, "r")
+    for line in f:
+        line = line.split()
+        if line[0] == "n":
+            nodes.append(line[1])
+        elif line[0] == "e":
+            edges.append((line[1], line[2]))
+
+    # vars = gen_vars(pigeons, holes)
+
+    vars = gen_vars(nodes, edges)
+
+    # rules = genPigConstr(pigeons, holes, vars)
+
+    rules = genConstr(nodes, edges, k, vars)
 
     head = printHeader(len(rules))
     rls = printCnf(rules)

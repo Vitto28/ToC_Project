@@ -7,6 +7,7 @@ from subprocess import PIPE
 import re
 import random
 import os
+import copy
 
 gbi = 0
 varToStr = ["invalid"]
@@ -29,29 +30,12 @@ def gvi(name):
     return gbi
 
 
-# def gen_vars(pigeons, holes):
-
-#     varMap = {}
-
-#     for hole in range(0, holes):
-#         for pigeon in range(0, pigeons):
-#             n = "inHole_"+str(pigeon)+"_"+str(hole)
-#             varMap[n] = gvi(n)
-
-#     # Insert here the code to add mapping from variable numbers to readable variable names.
-#     # A single variable with a human readable name "var_name" is added, for instance, as follows:
-#     # varMap["var_name"] = gvi("var_name")
-#     # let's add another one.
-#     # varMap["var2_name"] = gvi("var2_name")
-
-#     return varMap
-
-
 def gen_vars(nodes, edges, node_num, k):
     # TODO
     varMap = {}
 
     for i in range(0, node_num):
+        # n_i = node i is present in the k-clique
         n = "n_" + str(i + 1)
         varMap[n] = gvi(n)
 
@@ -115,16 +99,164 @@ def gen_clauses(nodes, edges, k, vars):
 
     # remember: a v (b & c) == (a v b) & (a v c)
 
-    for i in range(1, node_num + 1):
-        for j in range(1, k + 1):
-            # a = s(i-1, j)
-            a = vars["s_" + str(i - 1) + "_" + str(j)]
-            # b = x_i
-            b = vars["n_" + str(i)]
-            # c = s(i-1, j-1)
-            c = vars["s_" + str(i - 1) + "_" + str(j - 1)]
-            clauses.append([a, b])
-            clauses.append([a, c])
+    # takes s_n_k as input and returns clauses [a,b], [a,c]
+    # which is equivalent to (a v b) & (a v c)
+    def getClauses(counter):
+        # def findA(n, k):
+        #     return n - 1, k, vars["s_" + str(n - 1) + "_" + str(k)]
+
+        # def findB(n):
+        #     return vars["n_" + str(n)]
+
+        # def findC(n, k):
+        #     return n - 1, k - 1, vars["s_" + str(n - 1) + "_" + str(k - 1)]
+
+        n = counter[0]
+        k = counter[1]
+
+        a = (n-1, k)
+        b = n
+        c = (n-1, k-1)
+        return [[a, b], [a, c]]
+
+    counter = getClauses((node_num, k))
+    # print(counter)
+
+    # print(counter)
+
+    def replaceWithClauses(input):
+        # print()
+        # print("inside replaceWith")
+        # print("input is: " + str(input))  # (4,3)
+
+        old_input = copy.deepcopy(input)
+
+        if type(input) is tuple:
+            # print("getting clauses, leaving replaceWith")
+            # print()
+            return getClauses(input)
+
+        for i in range(0, len(input)):
+            clause = input[i]
+            # print(str(i) + "-th clause is: " + str(clause))  # [ (4,3), 5 ]
+
+            if type(clause) is not int:
+                input[i] = replaceWithClauses(clause)
+
+                # for j in range(0, len(clause)):
+                #     el = clause[j]
+                #     print(str(j) + "-th element of clause is: " + str(el))
+
+                #     if type(el) is tuple:
+                #         new_el = replaceWithClauses(el)
+                #         clause[j] = new_el
+
+        # print("input before update")
+        # print(input)
+
+        # print("remember, input was:")
+        # print(old_input)
+
+        # print("input var is")
+        # print(input)
+
+        last_el = input[-1]
+        new_list = input[:-1][0]
+        # print("last_el is")
+        # print(last_el)
+        flag = False
+        for i in range(0, len(new_list)):
+            if type(last_el) is list:
+                flag = True
+                for el in last_el:
+                    new_list[i].append(el)
+
+            else:
+                # print(new_list[i])
+                new_list[i].append(last_el)
+                # print(new_list[i])
+
+        final_list = []
+
+        if not flag:
+            final_list = new_list
+
+        if flag:
+            for i in range(0, len(new_list)):
+                new_list[i].reverse()
+                last_el = [new_list[i].pop()]
+                last_el.append(new_list[i].pop())
+                new_list[i].append(last_el)
+                # print(last_el)
+
+            # print("\nnewlist")
+            # print(new_list)
+            # print()
+
+            for i in range(0, len(new_list)):  # r2
+                terms = new_list[i].pop()
+                # print("new_list[i]")
+                # print(new_list[i])
+                # print("term is")
+                # print(terms)
+                for j in range(0, len(new_list[i])):
+                    tmp = copy.deepcopy(new_list[i][j])
+                    for term in terms:
+                        tmp.append(term)
+                    # tmp.append(term)
+                    final_list.append(tmp)
+                    # print()
+                    # print("final list up to now")
+                    # print(final_list)
+                    # print()
+
+                # print()
+                # print(new_list)
+                # print()
+
+                # for j in range(0, len(new_list[i])):
+                #     print("appending " + str(last_el) +
+                #           " to " + str(new_list[i][j]))
+                #     clause = new_list[i][j]
+                #     clause.append(last_el)
+
+        # print()
+        # print("our final list is")
+        # for el in final_list:
+        #     print(el)
+        # print()
+        # print("newlist is")
+        # print(new_list)
+        for i in range(0, len(input)):
+            input[i] = final_list[i]
+
+        # print("leaving replaceWith")
+        # print()
+
+    my_clauses = replaceWithClauses(counter)
+    print(my_clauses)
+
+    # finished = False
+    # temp_clauses = getClauses((node_num, k))
+    # while not finished:
+    #     for i in range(0, len(temp_clauses)):
+    #         print(temp_clauses[i])
+    #         for var in temp_clauses[i]:
+    #             if type(var) is tuple:
+    #                 tmp = getClauses(var)
+    #                 temp_clauses[i] = tmp
+    #     finished = True
+
+    # for i in range(1, node_num + 1):
+    #     for j in range(1, k + 1):
+    #         # a = s(i-1, j)
+    #         a = vars["s_" + str(i - 1) + "_" + str(j)]
+    #         # b = x_i
+    #         b = vars["n_" + str(i)]
+    #         # c = s(i-1, j-1)
+    #         c = vars["s_" + str(i - 1) + "_" + str(j - 1)]
+    #         clauses.append([a, b])
+    #         clauses.append([a, c])
 
     return clauses
 
@@ -166,8 +298,6 @@ if __name__ == '__main__':
         elif line[0] == "e":
             edges.append((line[1], line[2]))
 
-    # vars = gen_vars(pigeons, holes)
-
     # check input is valid
     num_nodes = len(nodes)
     max_num_edges = num_nodes * (num_nodes - 1) / 2
@@ -182,11 +312,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     vars = gen_vars(nodes, edges, num_nodes, k)
-    for var in vars:
-        print(var, vars[var])
-    # print(vars)
-
-    # rules = genPigConstr(pigeons, holes, vars)
+    # for var in vars:
+    #     print(var, vars[var])
 
     rules = gen_clauses(nodes, edges, k, vars)
 

@@ -1,10 +1,8 @@
-n bob
-n alice
-n matt
-n joe
-n mary
-e bob matt
-e bob mary
-e alice matt
-e alice joe
-e matt mary
+n one
+n two
+n three
+n four
+n five
+e one four
+e one five
+e four five

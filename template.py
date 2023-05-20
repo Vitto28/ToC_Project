@@ -64,10 +64,6 @@ def reduce(lst, idx):
     new_lst = []
     first_term = lst.pop(idx)
 
-    # print()
-    # print(lst, first_term)
-    # print()
-
     if len(lst) == 0:
         return lst_copy
 
@@ -91,7 +87,6 @@ def reduce(lst, idx):
 
 
 def replaceWithClauses(input, d):
-    # print(d, "IN rwc", input, "\n")
 
     # if we have a tuple, get s(n-1, k), x_n, and s(n-1, k-1)
     # note that if n is 0, we are at the end, so dont retrieve anything
@@ -111,14 +106,10 @@ def replaceWithClauses(input, d):
     # size = len(input)
     while i < len(input) and not flag:
 
-        # print(d, "whoop whoop")
-
         term = input[i]
         result, rmv_brack = replaceWithClauses(term, d + 1)
-        # print(d, "rmv-brack", rmv_brack)
 
         if rmv_brack:
-            # print(d, "## rmving bracket ###")
             new_list = []
             j = 0
             while j < len(input):
@@ -138,30 +129,19 @@ def replaceWithClauses(input, d):
             i = i + 1
             continue
 
-        # print(d, "check if i should reduce", input)
         def depth(L): return isinstance(L, list) and max(map(depth, L))+1
         d = depth(input)
         if d > 2 and i < len(input) and d > 0 and not rmv_brack:
-            # print(d, "reducing")
             input = reduce(input, i)
-        # else:
-            # print(d, "nope")
-
-        # print(d, "=", i, len(input), input)
 
         # check if further reductions are needed
         done = True
         j = 0
-        # print(d, "checking if done")
         while j < len(input) and done:
-            # for clause in input:
             clause = input[j]
-            # print("checking clause:", clause)
             for k in range(0, len(clause)):
                 el = clause[k]
-            # for el in clause:
                 if type(el) is tuple and el[0] > 0 and el[1] > 0:
-                    # print(d, "uh oh:", el)
                     done = False
                     i = j
                     break
@@ -169,28 +149,10 @@ def replaceWithClauses(input, d):
 
         if done:
             flag = True
-            # print("-" + str(d) + "done")
             if d == 0:
-                # print("LISTO")
                 return input
-        # else:
-            # i = i - 1
-            # print(d, "not done")
-            # print(d, "check this again", input[i])
-
-        # pls work
         if d == 1 and done:
             break
-
-        # print(d, "end of whoop")
-
-    # ok dont uncomment this maybe???
-    # if d == 0:
-    #     input = input[0]
-
-    # print("\nout of while\n")
-
-    # print(d, "OUT rwc", input, "\n")
     return input, flag
 
 # === generate clauses ===
@@ -205,17 +167,13 @@ def gen_clauses(nodes, edges, k, vars):
         found = False
         for j in range(i + 1, node_num):
             for edge in edges:
-                print("checking if this edge exists:", nodes[i], nodes[j])
                 if nodes[i] in edge and nodes[j] in edge:
-                    print("it do")
                     found = True
                     break
             if not found:
-                print("adding an edge")
                 # add condition
                 # if there is no edge between nodes i and j, then node_i and node_j cannot
                 # both be true at the same time
-                # print("there is no edge between nodes:", i + 1, j + 1)
                 var1 = -vars["n_" + str(i + 1)]
                 var2 = -vars["n_" + str(j + 1)]
                 clauses.append([var1, var2])
@@ -243,18 +201,12 @@ def gen_clauses(nodes, edges, k, vars):
     # remember: a v (b & c) == (a v b) & (a v c)
 
     counter = getClauses((node_num, k))
-    # counter = [[(1, 2), (1, 1), 3]]
-    # print(counter)
 
     def createClauses(input):
         return replaceWithClauses(input, 0)[0]
 
     result = createClauses(counter)
-    # print("\nResult:")
-    # print(result)
-    # print("len", len(result))
     for clause in result:
-        # print(clause)
         list = []
         for term in clause:
             if type(term) is tuple:
@@ -262,7 +214,6 @@ def gen_clauses(nodes, edges, k, vars):
             if type(term) is int:
                 list.append(vars["n_" + str(term)])
         clauses.append(list)
-    # print()
     return clauses
 
 
@@ -307,7 +258,6 @@ if __name__ == '__main__':
     # check input is valid
     num_nodes = len(nodes)
     num_edges = len(edges)
-    print(edges)
     max_num_edges = num_nodes * (num_nodes - 1) / 2
 
     # handle invalid input
@@ -326,22 +276,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # compute vars
-    print("# nodes:", num_nodes)
-    print("# edges:", num_edges)
-    print("looking for a " + str(k) + "-clique")
 
     vars = gen_vars(nodes, edges, num_nodes, k)
-    for var in vars:
-        print(str(var) + ": " + str(vars[var]))
 
     rules = gen_clauses(nodes, edges, k, vars)
 
     head = printHeader(len(rules))
     rls = printCnf(rules)
-
-    print()
-    print(rls)
-    print()
 
     # here we create the cnf file for SATsolver
     fl = open("tmp_prob.cnf", "w")

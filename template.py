@@ -200,17 +200,22 @@ def gen_clauses(nodes, edges, k, vars):
 
     clauses = []
     node_num = len(nodes)
-    found = False
+    
     for i in range(0, node_num):
+        found = False
         for j in range(i + 1, node_num):
             for edge in edges:
+                print("checking if this edge exists:", nodes[i], nodes[j])
                 if nodes[i] in edge and nodes[j] in edge:
+                    print("it do")
                     found = True
                     break
             if not found:
+                print("adding an edge")
                 # add condition
                 # if there is no edge between nodes i and j, then node_i and node_j cannot
                 # both be true at the same time
+                # print("there is no edge between nodes:", i + 1, j + 1)
                 var1 = -vars["n_" + str(i + 1)]
                 var2 = -vars["n_" + str(j + 1)]
                 clauses.append([var1, var2])
@@ -302,6 +307,7 @@ if __name__ == '__main__':
     # check input is valid
     num_nodes = len(nodes)
     num_edges = len(edges)
+    print(edges)
     max_num_edges = num_nodes * (num_nodes - 1) / 2
 
     # handle invalid input

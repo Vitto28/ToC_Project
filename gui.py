@@ -46,9 +46,9 @@ def main():
                 if v[0] == "n":
                     idx = int(v[1]) - 1
                     nodes_in_clique.append(nodes[idx])
-                    node_color[idx] = 'red'
+                    node_color[idx] = '#ff6961'
             edge_color = list(map(
-                lambda edge: 'red'
+                lambda edge: '#ff6961'
                     if edge[0] in nodes_in_clique and edge[1] in nodes_in_clique
                     else 'lightgrey',
                 edges,

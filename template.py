@@ -228,20 +228,8 @@ def printCnf(cls):
     return "\n".join(map(lambda x: "%s 0" % " ".join(map(str, x)), cls))
 
 
-# This function is invoked when the python script is run directly and not imported
-if __name__ == '__main__':
-    # if not (os.path.isfile(SATsolver) and os.access(SATsolver, os.X_OK)):
-    # if Z3 is installed with homebrew in the PATH env no need to explicitly specify the solver
-    #    print "Set the path to SATsolver correctly on line 4 of this file (%s)" % sys.argv[0]
-    #    sys.exit(1)
-
-    # This is for reading in the arguments.
-    if len(sys.argv) != 3:
-        print("Usage: %s <filename> <k>" % sys.argv[0])
-        sys.exit(1)
-
-    filename = sys.argv[1]
-    k = int(sys.argv[2])
+def kClique(filename, k):
+    k = int(k)
 
     nodes = []
     edges = []
@@ -309,9 +297,29 @@ if __name__ == '__main__':
         # This way we know that everything not printed is false.
         # The last element in asgn is the trailing zero and we can ignore it
 
+        for f in asgn:
+            print(f)
         # Convert the solution to our names
         facts = map(lambda x: varToStr[abs(x)], filter(lambda x: x > 0, asgn))
 
         # Print the solution
         for f in facts:
             print(f)
+
+
+# This function is invoked when the python script is run directly and not imported
+if __name__ == '__main__':
+    # if not (os.path.isfile(SATsolver) and os.access(SATsolver, os.X_OK)):
+    # if Z3 is installed with homebrew in the PATH env no need to explicitly specify the solver
+    #    print "Set the path to SATsolver correctly on line 4 of this file (%s)" % sys.argv[0]
+    #    sys.exit(1)
+
+    # This is for reading in the arguments.
+    if len(sys.argv) != 3:
+        print("Usage: %s <filename> <k>" % sys.argv[0])
+        sys.exit(1)
+
+    filename = sys.argv[1]
+    k = int(sys.argv[2])
+
+    kClique(filename, k)

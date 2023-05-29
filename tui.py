@@ -303,9 +303,10 @@ def kClique(filename, k):
         facts = map(lambda x: varToStr[abs(x)], filter(lambda x: x > 0, asgn))
 
         # Save the solution
-        pos_vars = facts
+        pos_vars = list(facts)
+        return nodes, edges, z3_res, pos_vars, None
     
-    return nodes, edges, z3_res, pos_vars, None
+    return nodes, edges, z3_res, [], "Unsatisfiable: no " + str(k) + "-clique found in graph"
 
 
 # This function is invoked when the python script is run directly and not imported
@@ -323,7 +324,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     k = sys.argv[2]
 
-    _, _, z3_res, pos_vars, error = kClique(filename, k)
+    _, _, z3_res, pos_vars, message = kClique(filename, k)
 
     # Print results
     if z3_res is not None:
@@ -331,5 +332,5 @@ if __name__ == '__main__':
     if pos_vars is not None:
         for v in pos_vars:
             print(v)
-    if error is not None:
-        print(error)
+    elif message is not None:
+        print(message)

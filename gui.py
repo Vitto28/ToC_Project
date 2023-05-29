@@ -34,7 +34,7 @@ def main():
     tkcanvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 
     def calculate_output(filepath, k):
-        nodes, edges, _, pos_vars, error = kClique(filepath, k)
+        nodes, edges, _, pos_vars, message = kClique(filepath, k)
         if pos_vars is not None:
             G = nx.Graph()
             G.add_nodes_from(nodes)
@@ -60,9 +60,11 @@ def main():
                 node_color=node_color,
                 edge_color=edge_color)
             fig.canvas.draw()
+            if len(pos_vars) == 0:
+                window['-OUTPUT-'].update(message)
         else:
-            window['-OUTPUT-'].update(error)
-        window['-OUTPUT-'].update(visible=pos_vars is None)
+            window['-OUTPUT-'].update(message)
+        window['-OUTPUT-'].update(visible=pos_vars is None or len(pos_vars) == 0)
         window['-CANVAS-'].update(visible=pos_vars is not None)
         window.write_event_value('JOB DONE', None)
 

@@ -4,7 +4,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import PySimpleGUI as sg
 import networkx as nx
 import matplotlib
-from template import kClique
+from tui import kClique
 
 def main():
     sg.theme('TanBlue')

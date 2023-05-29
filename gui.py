@@ -39,7 +39,7 @@ def main():
             G = nx.Graph()
             G.add_nodes_from(nodes)
             G.add_edges_from(edges)
-            node_color = ['blue'] * len(nodes)
+            node_color = ['lightgrey'] * len(nodes)
             nodes_in_clique = []
             for v in pos_vars:
                 v = v.split('_')
@@ -50,7 +50,7 @@ def main():
             edge_color = list(map(
                 lambda edge: 'red'
                     if edge[0] in nodes_in_clique and edge[1] in nodes_in_clique
-                    else 'blue',
+                    else 'lightgrey',
                 edges,
             ))
             fig.clear()

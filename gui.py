@@ -8,6 +8,7 @@ from template import kClique
 
 def main():
     sg.theme('TanBlue')
+    sg.set_options(font=("Helvetica", 40))
 
     layout = [
         [sg.Text('Choose a text file for the graph:')],
@@ -24,10 +25,10 @@ def main():
         [sg.Button('Exit')]
     ]
 
-    window = sg.Window('K-Clique', layout, default_element_size=(40, 1), grab_anywhere=False, size=(1000, 1000), finalize=True)
+    window = sg.Window('K-Clique', layout, grab_anywhere=False, size=(2000, 2000), finalize=True)
 
     matplotlib.use('TkAgg')
-    fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
+    fig = matplotlib.figure.Figure(figsize=(5, 5), dpi=300)
     tkcanvas = FigureCanvasTkAgg(fig, window['-CANVAS-'].TKCanvas)
     tkcanvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 

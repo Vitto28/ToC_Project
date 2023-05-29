@@ -4,8 +4,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import PySimpleGUI as sg
 import networkx as nx
 import matplotlib
-from subprocess import Popen
-from subprocess import PIPE
 from template import kClique
 
 # Defining a Class
@@ -41,15 +39,15 @@ def main():
     layout = [
         [sg.Text('Choose a text file for the graph:')],
         [
-            sg.InputText(key='-FILE_PATH-'),
+            sg.InputText('graph.txt', key='-FILE_PATH-'),
             sg.FileBrowse(file_types=(("Text Files", "*.txt"),)),
         ],
         [sg.Text('Choose an integer k:')],
-        [sg.InputText(key='-K-')],
+        [sg.InputText('1', key='-K-')],
         [sg.Button('Submit')],
         [sg.Text('_' * 80)],
         [sg.Multiline(key='-OUTPUT-', visible=False)],
-        [sg.Canvas(key='-CANVAS-')],
+        [sg.Canvas(key='-CANVAS-', visible=False)],
         [sg.Button('Exit')]
     ]
 
@@ -57,21 +55,8 @@ def main():
 
     matplotlib.use('TkAgg')
     fig = matplotlib.figure.Figure(figsize=(5, 4), dpi=100)
-    # add the plot to the window
-    def draw_figure(canvas, figure):
-      tkcanvas = FigureCanvasTkAgg(figure, canvas)
-      tkcanvas.get_tk_widget().pack(side='top', fill='both', expand=1)
-      return tkcanvas
-    draw_figure(window['-CANVAS-'].TKCanvas, fig)
-    # Driver code
-    G = GraphVisualization()
-    G.addEdge(0, 2)
-    G.addEdge(1, 2)
-    G.addEdge(1, 3)
-    G.addEdge(5, 3)
-    G.addEdge(3, 4)
-    G.addEdge(1, 0)
-    G.visualize(fig.gca())
+    tkcanvas = FigureCanvasTkAgg(fig, window['-CANVAS-'].TKCanvas)
+    tkcanvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 
     while True:
         event, values = window.read()
@@ -79,13 +64,36 @@ def main():
         if event == 'Submit':
             filepath = values['-FILE_PATH-']
             k = values['-K-']
-            graph, error = kClique(filepath, k)
-            if graph is not None:
-                graph.visualize(fig.gca())
+            nodes, edges, _, pos_vars, error = kClique(filepath, k)
+            if pos_vars is not None:
+                G = nx.Graph()
+                G.add_nodes_from(nodes)
+                G.add_edges_from(edges)
+                node_color = ['blue'] * len(nodes)
+                nodes_in_clique = []
+                for v in pos_vars:
+                    v = v.split('_')
+                    if v[0] == "n":
+                        idx = int(v[1]) - 1
+                        nodes_in_clique.append(nodes[idx])
+                        node_color[idx] = 'red'
+                edge_color = list(map(
+                    lambda edge: 'red'
+                        if edge[0] in nodes_in_clique and edge[1] in nodes_in_clique
+                        else 'blue',
+                    edges,
+                ))
+                fig.clear()
+                nx.draw_networkx(G,
+                    pos=nx.circular_layout(G),
+                    ax=fig.gca(),
+                    node_color=node_color,
+                    edge_color=edge_color)
+                fig.canvas.draw()
             else:
                 window['-OUTPUT-'].update(error)
-            window['-OUTPUT-'].update(visible=graph is None)
-            window['-CANVAS-'].update(visible=graph is not None)
+            window['-OUTPUT-'].update(visible=pos_vars is None)
+            window['-CANVAS-'].update(visible=pos_vars is not None)
         elif event in ('Exit', None):
             break
 

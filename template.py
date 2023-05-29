@@ -229,12 +229,18 @@ def printCnf(cls):
 
 
 def kClique(filename, k):
-    k = int(k)
-
     nodes = []
     edges = []
 
-    f = open(filename, "r")
+    try:
+        k = int(k)
+    except ValueError:
+        return nodes, edges, None, None, "K must be an integer"
+
+    try:
+        f = open(filename, "r")
+    except IOError:
+        return nodes, edges, None, None, "File does not appear to exist"
     for line in f:
         line = line.split()
         if line:
@@ -251,17 +257,13 @@ def kClique(filename, k):
     # handle invalid input
 
     if k < 1:
-        print("K-clique size must be at least 1")
-        sys.exit(1)
+        return nodes, edges, None, None, "K-clique size must be at least 1"
 
     if k > num_nodes:
-        print("Can't find a " + str(k) + "-clique in a " +
-              str(num_nodes) + "-node graph")
-        sys.exit(1)
+        return nodes, edges, None, None, "Can't find a " + str(k) + "-clique in a " + str(num_nodes) + "-node graph"
 
     if len(edges) > max_num_edges:
-        print("Graph has more edges than is feasible for its number of nodes.")
-        sys.exit(1)
+        return nodes, edges, None, None, "Graph has more edges than is feasible for its number of nodes."
 
     # compute vars
 
@@ -284,8 +286,8 @@ def kClique(filename, k):
     # SATsolver with these arguments writes the solution to a file called "solution".  Let's check it
     # res = open("solution", "r").readlines()
     res = ms_out.decode('utf-8')
-    # Print output
-    print(res)
+    # Save output
+    z3_res = res
     res = res.strip().split('\n')
 
     # if it was satisfiable, we want to have the assignment printed out
@@ -297,14 +299,13 @@ def kClique(filename, k):
         # This way we know that everything not printed is false.
         # The last element in asgn is the trailing zero and we can ignore it
 
-        for f in asgn:
-            print(f)
         # Convert the solution to our names
         facts = map(lambda x: varToStr[abs(x)], filter(lambda x: x > 0, asgn))
 
-        # Print the solution
-        for f in facts:
-            print(f)
+        # Save the solution
+        pos_vars = facts
+    
+    return nodes, edges, z3_res, pos_vars, None
 
 
 # This function is invoked when the python script is run directly and not imported
@@ -320,6 +321,15 @@ if __name__ == '__main__':
         sys.exit(1)
 
     filename = sys.argv[1]
-    k = int(sys.argv[2])
+    k = sys.argv[2]
 
-    kClique(filename, k)
+    _, _, z3_res, pos_vars, error = kClique(filename, k)
+
+    # Print results
+    if z3_res is not None:
+        print(z3_res)
+    if pos_vars is not None:
+        for v in pos_vars:
+            print(v)
+    if error is not None:
+        print(error)
